@@ -1,7 +1,7 @@
-from acesso_smsmarket import ConsultaSms
+from model.acesso_smsmarket import ConsultaSms
 import json
 import requests
-from jsonschema import validate, exceptions
+from jsonschema import validate
 
 def consult(msisdn=None):
     consulta = ConsultaSms()
@@ -12,7 +12,10 @@ def consult(msisdn=None):
             "pattern": "^[0-9]{13}$"
         }
 
-        validate(msisdn, schema=schema)
+        try:
+            validate(msisdn, schema=schema)
+        except Exception as e:
+            return validation_error(e)
 
     url = consulta.url_format()
     consult_smsmarket = consulta.consult_smsmarket(msisdn, url)
@@ -21,6 +24,5 @@ def consult(msisdn=None):
     return json.dumps({'response': return_format}), 200
 
 
-@app.errorhandler(exceptions.ValidationError)
 def validation_error(e):
     return json.dumps({"message": "Telefone informado incorretamente"}), 400

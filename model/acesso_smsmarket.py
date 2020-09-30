@@ -7,7 +7,8 @@ from config import sms_market_url, sms_market_status
 class ConsultaSms:
 
     def url_format(self, minutes_from=10, minutes_to=0):
-        now = datetime.datetime.now()
+        timezone_offset = datetime.timedelta(hours=3)
+        now = datetime.datetime.now() - timezone_offset
 
         start_search_time = now - datetime.timedelta(minutes=minutes_from)
         end_search_time = now - datetime.timedelta(minutes=minutes_to)
@@ -19,9 +20,14 @@ class ConsultaSms:
 
     def consult_smsmarket(self, number, url):
         r = requests.get(url)
+        print(f'URL: {url}')
         messages = r.json()
         return_filtered = []
         keys = ['number', 'sent_date', 'status']
+
+        if messages['messageCount'] == 0:
+            return []
+        
         for message in messages['messages']:
             if number == message['number'] or number is None:
                 return_filtered.append({key: message[key] for key in keys})
