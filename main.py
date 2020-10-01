@@ -1,5 +1,5 @@
-from request_handler import RequestHandler
 from resources.sms_list import SmsList
+from flask_cf_framework import RequestHandler
 # from resources.sms import sms
 
 rh = RequestHandler()

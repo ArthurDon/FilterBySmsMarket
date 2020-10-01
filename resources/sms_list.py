@@ -1,5 +1,6 @@
-from resources.endpoint import Endpoint
+from flask_cf_framework.endpoint import Endpoint
 from model.consult import consult
+
 
 class SmsList(Endpoint):
     def __init__(self, request):
