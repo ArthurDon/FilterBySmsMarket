@@ -23,7 +23,9 @@ class ConsultaSms:
         print(f'URL: {url}')
         messages = r.json()
         return_filtered = []
-        keys = ['number', 'sent_date', 'status']
+        keys = ['number', 'sent_date', 'status', 'carrier_name']
+
+        print(f'Messages: {messages}')
 
         if messages['messageCount'] == 0:
             return []
@@ -32,7 +34,8 @@ class ConsultaSms:
             if number == message['number'] or number is None:
                 return_filtered.append({key: message[key] for key in keys})
 
-        return self.filter_by(return_filtered, 'status', ['-1'])
+        return return_filtered
+        return self.filter_by(return_filtered, 'status', ['-1', '0'])
 
     def return_format(self, filtered_response):       
 
@@ -48,3 +51,29 @@ class ConsultaSms:
 
     def filter_by(self, data, field, values):
         return [e for e in data if e[field] in values]
+    
+    def health(self):
+        url = self.url_format()
+        numbers_in_error = self.consult_smsmarket(None, url)
+        carriers = {}
+        
+        for number in numbers_in_error:
+            carrier = number['carrier_name']
+            carriers[carrier] = carriers.get(carrier, [])
+            if self.is_expired(number['sent_date']):
+                carriers[carrier].append(number['number'])
+        
+        print(f'Carriers: {carriers}')  
+        
+        
+    def is_expired(self, sent_date):
+        sent_date = datetime.datetime.strptime(sent_date, '%Y-%m-%d %H:%M:%S')
+
+        timezone_offset = datetime.timedelta(hours=3)
+        now = datetime.datetime.now() - timezone_offset
+
+        minutes_offset = datetime.timedelta(minutes=2)
+        expiration_time = now - minutes_offset
+
+        return sent_date < expiration_time
+            

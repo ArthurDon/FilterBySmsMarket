@@ -1,9 +1,9 @@
+from flask_cf_framework.request_handler import RequestHandler
 from resources.sms_list import SmsList
-from flask_cf_framework import RequestHandler
-# from resources.sms import sms
+from resources.sms import Sms
 
 rh = RequestHandler()
-#rh.add(sms, '/sms/<string:msisdn>')
+rh.add(Sms, '/sms/<string:msisdn>')
 rh.add(SmsList, '/sms')
 
 def main(request):
