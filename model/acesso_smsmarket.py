@@ -2,6 +2,10 @@ import requests
 import datetime
 import time
 from config import sms_market_url, sms_market_status
+from utils import dates
+import pprint
+import json
+from model.health import number_status
 
 
 class ConsultaSms:
@@ -20,21 +24,23 @@ class ConsultaSms:
 
     def consult_smsmarket(self, number, url):
         r = requests.get(url)
-        print(f'URL: {url}')
         messages = r.json()
         return_filtered = []
-        keys = ['number', 'sent_date', 'status']
+        keys = ['number', 'sent_date', 'status', 'carrier_name']
 
         if messages['messageCount'] == 0:
             return []
-        
+
         for message in messages['messages']:
-            if number == message['number'] or number is None:
-                return_filtered.append({key: message[key] for key in keys})
+            return_filtered.append({key: message[key] for key in keys})
 
-        return self.filter_by(return_filtered, 'status', ['-1'])
+        if number:
+           return_filtered = self.filter_by(return_filtered, 'number', [number])
 
-    def return_format(self, filtered_response):       
+
+        return self.filter_by(return_filtered, 'status', ['-1', '0'])
+
+    def return_format(self, filtered_response):
 
         for element in filtered_response:
             element['status'] = sms_market_status.get(element.get('status'))
@@ -48,3 +54,8 @@ class ConsultaSms:
 
     def filter_by(self, data, field, values):
         return [e for e in data if e[field] in values]
+
+    def health_status(self):
+        url = self.url_format()
+        numbers_in_error = self.consult_smsmarket(None, url)
+        return number_status(numbers_in_error)
