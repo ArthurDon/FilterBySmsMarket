@@ -2,6 +2,10 @@ import requests
 import datetime
 import time
 from config import sms_market_url, sms_market_status
+from utils import dates
+import pprint
+import json
+
 
 
 class ConsultaSms:
@@ -19,13 +23,10 @@ class ConsultaSms:
         return sms_market_url.format(url_start_date, url_end_date)
 
     def consult_smsmarket(self, number, url):
-        r = requests.get(url)
-        print(f'URL: {url}')
+        r = requests.get(url)        
         messages = r.json()
         return_filtered = []
-        keys = ['number', 'sent_date', 'status', 'carrier_name']
-
-        print(f'Messages: {messages}')
+        keys = ['number', 'sent_date', 'status', 'carrier_name']        
 
         if messages['messageCount'] == 0:
             return []
@@ -33,8 +34,7 @@ class ConsultaSms:
         for message in messages['messages']:
             if number == message['number'] or number is None:
                 return_filtered.append({key: message[key] for key in keys})
-
-        return return_filtered
+        
         return self.filter_by(return_filtered, 'status', ['-1', '0'])
 
     def return_format(self, filtered_response):       
@@ -55,25 +55,32 @@ class ConsultaSms:
     def health(self):
         url = self.url_format()
         numbers_in_error = self.consult_smsmarket(None, url)
+        #pprint.pprint(f'\n\n {numbers_in_error}')
         carriers = {}
         
         for number in numbers_in_error:
             carrier = number['carrier_name']
             carriers[carrier] = carriers.get(carrier, [])
-            if self.is_expired(number['sent_date']):
+            sent_date = datetime.datetime.strptime(number['sent_date'], '%Y-%m-%d %H:%M:%S')
+            if dates.is_expired(sent_date):
                 carriers[carrier].append(number['number'])
-        
-        print(f'Carriers: {carriers}')  
-        
-        
-    def is_expired(self, sent_date):
-        sent_date = datetime.datetime.strptime(sent_date, '%Y-%m-%d %H:%M:%S')
 
-        timezone_offset = datetime.timedelta(hours=3)
-        now = datetime.datetime.now() - timezone_offset
+        carrier_status = {}
+        for carrier, msisdns in carriers.items():  
+                     
+            carrier_status[carrier] = len(msisdns) > 5
+            
+        return carrier_status, 200
 
-        minutes_offset = datetime.timedelta(minutes=2)
-        expiration_time = now - minutes_offset
+       
 
-        return sent_date < expiration_time
+            
+       
+                 
+
+
+
+        
+        
+    
             

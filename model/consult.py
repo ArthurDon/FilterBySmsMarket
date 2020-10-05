@@ -20,10 +20,13 @@ def consult(msisdn=None):
     url = consulta.url_format()
     consult_smsmarket = consulta.consult_smsmarket(msisdn, url)
     return_format = consulta.return_format(consult_smsmarket)
-    
-    consulta.health()
-    
+            
     return json.dumps({'response': return_format}), 200
+
+def health(msisdn=None):
+    consulta = ConsultaSms()     
+    response, code = consulta.health() 
+    return json.dumps({'response':response}), code
 
 
 def validation_error(e):
