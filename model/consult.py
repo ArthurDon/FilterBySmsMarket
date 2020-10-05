@@ -25,7 +25,7 @@ def consult(msisdn=None):
 
 def health(msisdn=None):
     consulta = ConsultaSms()     
-    response, code = consulta.health() 
+    response, code = consulta.health_status() 
     return json.dumps({'response':response}), code
 
 
